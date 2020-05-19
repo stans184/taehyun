@@ -1,0 +1,21 @@
+This is test pages.
+
+The default interactive shell is now zsh.
+
+I wanna connect with my machine and my web site
+
+This is can control robot and MC
+
+Can I get whole MC?
+
+Upper Robot
+
+Robot in use : y
+
+Position x : 1, y : 2
+
+Lower Robot
+
+Robot in use a b x
+
+Position x : 4, y : 3
