@@ -1,6 +1,5 @@
-def extractMC(location):
+def extractARMSMC(location):
     # file open
-    # f = open('/Users/hyun/workspace/python_test/test.txt', "r")
     f = open(location, "r")
 
     # declare valuable
@@ -16,20 +15,16 @@ def extractMC(location):
         # can i found without known of the file?
         try:
             while i<2:
-                if data_list.index('use') == 2:
-                    # print(data_list)
+                if data_list.index('Use') == 2:
                     ARMS_robot.append(data_list[4])
                     i=i+1
         except ValueError:
             pass
-
-    # print out the value
-    # print(ARMS_robot)
 
     # close the file
     f.close()
 
     return ARMS_robot
 
-MC = extractMC('/Users/hyun/workspace/python_test/test.txt')
+MC = extractARMSMC('/workspace/test/AR_machine.const.txt')
 print(MC)
