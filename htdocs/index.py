@@ -4,18 +4,15 @@ print("Content-Type: text/html")    # HTML is following
 print()                             # blank line, end of headers
 
 import cgi                          # cgi package를 사용하겠다
-import os
-
-files = os.listdir('data')          # data 폴더 안의 파일 이름들을 가져와서 files에 list로 저장
-liststr = ''
-for item in files:
-  liststr = liststr + '<li><a href="index.py?id={name}">{name}</a></li>'.format(name=item)
+import os, view
 
 form = cgi.FieldStorage()
 
 if 'id' in form:
     pageId = form["id"].value
     description = open('data/'+pageId,'r').read()
+    description = description.replace('<', '&lt;')                       # 보안의 일종, javascript 코드를 입력하면, 화면에 그대로 표시되도록 함
+    description = description.replace('>', '&gt;')
     update_link = '<a href="update.py?id={}">update</a>'.format(pageId)  # id 값이 있을 때만 update link 활성화
     delete_action = '''
         <form action="process_delete.py" method="post">
@@ -46,4 +43,4 @@ print('''<!doctype html>
   <h2>{title}</h2>
   <p>{desc}</p>
 </body>
-</html>'''.format(title=pageId, desc = description, liststr = liststr, update_link = update_link, delete_action = delete_action))
+</html>'''.format(title=pageId, desc = description, liststr = view.getList(), update_link = update_link, delete_action = delete_action))
