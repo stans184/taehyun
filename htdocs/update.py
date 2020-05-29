@@ -4,12 +4,7 @@ print("Content-Type: text/html")    # HTML is following
 print()                             # blank line, end of headers
 
 import cgi                          # cgi package를 사용하겠다
-import os
-
-files = os.listdir('data')          # data 폴더 안의 파일 이름들을 가져와서 files에 list로 저장
-liststr = ''
-for item in files:
-  liststr = liststr + '<li><a href="index.py?id={name}">{name}</a></li>'.format(name=item)
+import os, view
 
 form = cgi.FieldStorage()
 
@@ -39,4 +34,4 @@ print('''<!doctype html>
     <p><input type="submit"></p>
   </form>
 </body>
-</html>'''.format(title=pageId, desc = description, liststr = liststr, form_default_title = pageId, form_default_description = description))
+</html>'''.format(title=pageId, desc = description, liststr = view.getList(), form_default_title = pageId, form_default_description = description))
