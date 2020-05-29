@@ -6,11 +6,6 @@ print()                             # blank line, end of headers
 import cgi                          # cgi package를 사용하겠다
 import os, view
 
-files = os.listdir('data')          # data 폴더 안의 파일 이름들을 가져와서 files에 list로 저장
-liststr = ''
-for item in files:
-  liststr = liststr + '<li><a href="index.py?id={name}">{name}</a></li>'.format(name=item)
-
 form = cgi.FieldStorage()
 
 if 'id' in form:
@@ -38,4 +33,4 @@ print('''<!doctype html>
     <p><input type="submit"></p>
   </form>
 </body>
-</html>'''.format(title=pageId, desc = description, liststr = view,getList()))
+</html>'''.format(title=pageId, desc = description, liststr = view.getList()))
