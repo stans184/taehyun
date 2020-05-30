@@ -4,15 +4,20 @@ print("Content-Type: text/html")    # HTML is following
 print()                             # blank line, end of headers
 
 import cgi                          # cgi package를 사용하겠다
-import os, view
+import os, view, html_sanitizer
+
+sanitizer = html_sanitizer.Sanitizer()              # 보안 이슈를 해결하기 위한 html_saniziter package 
 
 form = cgi.FieldStorage()
 
 if 'id' in form:
-    pageId = form["id"].value
+    title = pageId = form["id"].value
     description = open('data/'+pageId,'r').read()
-    description = description.replace('<', '&lt;')                       # 보안의 일종, javascript 코드를 입력하면, 화면에 그대로 표시되도록 함
-    description = description.replace('>', '&gt;')
+#     description = description.replace('<', '&lt;')                       # 보안의 일종, javascript 코드를 입력하면, 화면에 그대로 표시되도록 함
+#     description = description.replace('>', '&gt;')
+    title = sanitizer.sanitize(title)
+    description = sanitizer.sanitize(description)
+    
     update_link = '<a href="update.py?id={}">update</a>'.format(pageId)  # id 값이 있을 때만 update link 활성화
     delete_action = '''
         <form action="process_delete.py" method="post">
@@ -21,7 +26,7 @@ if 'id' in form:
         </form>
     '''.format(pageId)
 else:
-    pageId = 'welcome'
+    title = pageId = 'welcome'
     description = 'Hello. Web'
     update_link = ''
     delete_action = ''
@@ -43,4 +48,4 @@ print('''<!doctype html>
   <h2>{title}</h2>
   <p>{desc}</p>
 </body>
-</html>'''.format(title=pageId, desc = description, liststr = view.getList(), update_link = update_link, delete_action = delete_action))
+</html>'''.format(title=title, desc = description, liststr = view.getList(), update_link = update_link, delete_action = delete_action))
