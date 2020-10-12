@@ -1,13 +1,14 @@
 import ftplib
 import os
 import test.test_shutil
-# 시간 딜레이 주기 위해
 import time, datetime
 import pandas as pd
 # 파일 수정 함수 불러오기
 from file_modify import chg_csv
 # graph 함수 불러오기
 from visualize import graph
+# 현재 년 불러오기
+from now import now_year
 
 # pas 호기명 입력 받은 후 ftp를 이용한 process 진행
 def asml_pas(split_info):
@@ -18,31 +19,40 @@ def asml_pas(split_info):
         print("#. 설비에 접속할수 없습니다.")
         print("#. 다시접속하거나 다른 호기에 접속하여 주세요")
     else:
-        # ftp서버에서 파일다운로드 server_url은 ftp상의파일경로 [예: /home/server/html_public/index.htm ]
-        # local_url은 자신의 파일경로 [예: c:\html\working\index.htm ]
-
         # ftp / SWAD 폴더 접속
         ftp_name.cwd('/usr/asm/data.0000/service_data/SW/SWAD')
-        # bring file list
-        file_list = ftp_name.nlst()
-        # test1 = []
-        # ftp_name.dir('-t', '/usr/asm/data.0000/service_data/SW/SWAD', test1.append)
-        # latest_file_path="""ftp://"""+config['user']+""":"""+config['password']+"""@"""+config['host']+"""/""" + list_of_files[0][56:]   df_from_csv=pd.read_csv(latest_file_path, sep=""",""",   skiprows=index_row_to_start, dtype=np.object_)
+        test_list = []
+
+        # 현재 directory의 file 및 info 뽑아옴
+        ftp_name.retrlines('LIST -t', test_list.append) # -t를 넣어서, 최신순으로 정렬 & 같은 년도가 반복되면, 시간이 받아짐,,, why?
+        test_list = [line.split() for line in test_list]
+   
+        # list adjust
+        list_df = pd.DataFrame(test_list[1:8], columns=['authorize','etc','machine_num','machine','file_capa','month','day','time','file_name'])
+        list_df.drop(['authorize', 'etc', 'machine_num', 'machine'], axis = 'columns', inplace=True)
+        list_df['month'] = [datetime.datetime.strptime(x, '%b') for x in list_df['month']] # 숫자로 변환
+        list_df['month'] = list_df['month'].dt.strftime("%m") # 월만 따오기
+        list_df['file_capa'] = list_df['file_capa'].astype(int)
        
-        if 'autosave_tracedata_00.gh' in file_list:
+        list_df['time'] = pd.to_datetime(list_df['time'])
+        list_df['time'] = list_df['time'].dt.strftime("%H%M")
+
+        list_df['need_file'] = list_df[list_df['file_capa']>40000]['file_name'] # sort file_capa above 40000
+        list_df = list_df[list_df['need_file'].notnull()] # delete emtpy row
+
+        list_df.to_csv("d:/workspace/trace/"+machine+"list.csv")
+   
+        if 'autosave_tracedata_00.gh' in list_df['need_file'].values:
             ftp_name.retrbinary('RETR autosave_tracedata_00.gh',
                                 open('c:/dyn_trace_temp/' + machine + '_autosave_tracedata_00.gh', 'wb').write)
-            # 불러온 gh 파일을 csv로 변환
+             # 불러온 gh 파일을 csv로 변환
             chg_csv(machine)
             # graph 생성
-            # graph(machine)
+            graph(machine)
+            # rename trace file
+            new_name = 'autosave_tracedate_'+now_year()+list_df.loc[1,'month']+list_df.loc[1,'day']+'_'+list_df.loc[1,'time']+'.gh'
+            ftp_name.rename('autosave_tracedata_00.gh', new_name)
 
-            # 이름 바꿔서 넣기 해야함
-            # create_time = datetime.datetime.fromtimestamp(os.path.getctime('RETR autosave_tracedata_00.gh'))
-            # print(create_time)
-            # print(str(create_time.year) + str(create_time.month) + str(create_time.day) + "_" + str(create_time.hour) + str(create_time.minute))
-
-            # ftp의 연결을 끊습니다
             ftp_name.close()
         else:
             print("#. 새로 받아진 trace file이 없습니다.")
